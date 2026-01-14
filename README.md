@@ -2,10 +2,10 @@
 
 - Minimal and performant PC cleaner
 - Simple and auditable code
-- Safe: moves directories to trash
+- Safe: moves directories to trash, does not hard delete
 - Minimal dependencies
 
-Don't trust it, verify it!
+Don't trust, verify!
 
 ## Features
 
@@ -20,4 +20,4 @@ cargo run
 ```
 
 ### Notes
-- Tested an run on MacOS only; However, theoretically should work on Windows and Linux
+- Tested an ran on MacOS only; However, it should work on Windows and Linux
