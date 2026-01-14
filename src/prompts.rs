@@ -22,7 +22,7 @@ where
 }
 
 pub fn y_or_exit(prompt: &str, default: bool) -> io::Result<()> {
-    print!("{} (y/n): ", prompt);
+    print!("{}: ", prompt);
 
     io::stdout().flush()?;
 
