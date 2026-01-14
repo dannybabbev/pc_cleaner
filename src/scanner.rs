@@ -31,8 +31,8 @@ impl Display for MatchingPath {
 }
 
 pub struct ScanResult {
-    matched_paths: Vec<MatchingPath>,
-    sum_byte_size: u64,
+    pub matched_paths: Vec<MatchingPath>,
+    pub sum_byte_size: u64,
 }
 
 impl Display for ScanResult {
@@ -47,6 +47,15 @@ impl Display for ScanResult {
 }
 
 impl ScanResult {
+    pub fn formatted_sum_byte_size(&self) -> String {
+        format_size(self.sum_byte_size, DECIMAL)
+    }
+
+    /// Get the paths from the scan result
+    pub fn paths(&self) -> impl Iterator<Item = &Path> {
+        self.matched_paths.iter().map(|p| p.path.as_path())
+    }
+
     /// Filter paths by last accessed time, keeping only those accessed before the cutoff
     pub fn filter_by_last_accessed(&self, cutoff: SystemTime) -> ScanResult {
         let filtered: Vec<_> = self

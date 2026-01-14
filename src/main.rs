@@ -1,3 +1,4 @@
+mod cleaner;
 mod defaults;
 mod scanner;
 use chrono::{Duration, Local};
@@ -46,31 +47,44 @@ fn main() {
 
     new_section();
 
-    // Time filter options: 1 month, 3 months, 6 months
-    let time_options: &[(i64, &str)] =
-        &[(1, "1 month ago"), (3, "3 months ago"), (6, "6 months ago")];
+    // Time filter options: no filter, 1 month, 3 months, 6 months
+    let time_options: &[(Option<i64>, &str)] = &[
+        (None, "No filter - all results"),
+        (Some(1), "1 month ago"),
+        (Some(3), "3 months ago"),
+        (Some(6), "6 months ago"),
+    ];
 
     let months_back = prompt_selection("Filter by last visited", time_options).unwrap();
 
-    let now = Local::now();
-    let cutoff = now - Duration::days(months_back * 30);
-    let cutoff_system_time = cutoff
-        .naive_local()
-        .and_local_timezone(Local)
-        .unwrap()
-        .into();
+    let filtered_res = if let Some(months) = months_back {
+        let now = Local::now();
+        let cutoff = now - Duration::days(months * 30);
+        let cutoff_system_time = cutoff
+            .naive_local()
+            .and_local_timezone(Local)
+            .unwrap()
+            .into();
 
-    new_section();
-    println!(
-        "Filtering paths not accessed since {}...",
-        cutoff.format("%Y-%m-%d")
-    );
+        new_section();
+        println!(
+            "Filtering paths not accessed since {}...",
+            cutoff.format("%Y-%m-%d")
+        );
 
-    let filtered_res = res.filter_by_last_accessed(cutoff_system_time);
-    println!("{}", filtered_res);
+        let filtered = res.filter_by_last_accessed(cutoff_system_time);
+        println!("{}", filtered);
+        filtered
+    } else {
+        new_section();
+        println!("No filter applied - showing all results");
+        res
+    };
 
     new_section();
     y_or_exit("Delete directories? (y/N)", false).unwrap();
 
-    println!("Cleanup finished!");
+    let deleted = cleaner::delete_directories(&filtered_res).unwrap();
+    println!("Cleanup finished! Deleted {} directories.", deleted);
+    println!("Saved {}", filtered_res.formatted_sum_byte_size());
 }
