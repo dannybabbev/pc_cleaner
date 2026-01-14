@@ -46,6 +46,37 @@ impl Display for ScanResult {
     }
 }
 
+impl ScanResult {
+    /// Filter paths by last accessed time, keeping only those accessed before the cutoff
+    pub fn filter_by_last_accessed(&self, cutoff: SystemTime) -> ScanResult {
+        let filtered: Vec<_> = self
+            .matched_paths
+            .iter()
+            .filter(|p| p.last_accessed < cutoff)
+            .collect();
+
+        let total_size: u64 = filtered.iter().map(|p| p.byte_size).sum();
+
+        // Print filtered paths
+        for p in &filtered {
+            println!("{}", p);
+        }
+
+        ScanResult {
+            matched_paths: filtered
+                .into_iter()
+                .map(|p| MatchingPath {
+                    path: p.path.clone(),
+                    last_modified: p.last_modified,
+                    last_accessed: p.last_accessed,
+                    byte_size: p.byte_size,
+                })
+                .collect(),
+            sum_byte_size: total_size,
+        }
+    }
+}
+
 /// Source: https://github.com/webdesus/fs_extra/blob/1754296075e7cc4a25feaa876a3f4b9daccc0b98/src/dir.rs#L762C1-L817C1
 /// Returns the size of the file or directory in bytes.(!important: folders size not count)
 ///

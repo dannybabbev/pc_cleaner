@@ -1,10 +1,11 @@
 mod defaults;
 mod scanner;
+use chrono::{Duration, Local};
 use dirs;
 mod prompts;
 use std::path::PathBuf;
 
-use crate::prompts::y_or_exit;
+use crate::prompts::{prompt_selection, y_or_exit};
 
 fn expand_tilde(path: &str) -> PathBuf {
     if path.starts_with("~/") {
@@ -42,4 +43,29 @@ fn main() {
 
     let res = scanner::perform_scan(&scan_path, &matchers).unwrap();
     println!("{}", res);
+
+    println!("==========================================");
+
+    // Time filter options: 1 month, 3 months, 6 months
+    let time_options: &[(i64, &str)] =
+        &[(1, "1 month ago"), (3, "3 months ago"), (6, "6 months ago")];
+
+    let months_back = prompt_selection("Filter by last visited", time_options).unwrap();
+
+    let now = Local::now();
+    let cutoff = now - Duration::days(months_back * 30);
+    let cutoff_system_time = cutoff
+        .naive_local()
+        .and_local_timezone(Local)
+        .unwrap()
+        .into();
+
+    println!("==========================================");
+    println!(
+        "Filtering paths not accessed since {}...",
+        cutoff.format("%Y-%m-%d")
+    );
+
+    let filtered_res = res.filter_by_last_accessed(cutoff_system_time);
+    println!("{}", filtered_res);
 }

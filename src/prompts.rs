@@ -41,3 +41,35 @@ pub fn y_or_exit(prompt: &str, default: bool) -> io::Result<()> {
 
     Ok(())
 }
+
+pub fn prompt_selection<T: Clone>(prompt: &str, options: &[(T, &str)]) -> io::Result<T> {
+    println!("{}:", prompt);
+    for (i, (_, label)) in options.iter().enumerate() {
+        println!("  {}. {}", i + 1, label);
+    }
+
+    print!("Selection (1): ");
+    io::stdout().flush()?;
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)?;
+
+    let input = input.trim();
+
+    if input.is_empty() {
+        return Ok(options[0].0.clone());
+    }
+
+    let selection: usize = input
+        .parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    if selection == 0 || selection > options.len() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Selection out of range",
+        ));
+    }
+
+    Ok(options[selection - 1].0.clone())
+}
