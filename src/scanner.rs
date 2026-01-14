@@ -136,7 +136,16 @@ fn visit_dirs_recursive(
             return Ok(());
         }
 
-        for entry in read_dir(dir)? {
+        let entries = match fs::read_dir(dir) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == io::ErrorKind::PermissionDenied => {
+                println!("Skipping {:?}; Reason (Perimssion Denied)", dir);
+                return Ok(());
+            }
+            Err(e) => return Err(e),
+        };
+
+        for entry in entries {
             let entry = entry?;
             let path = entry.path();
             if path.is_dir() {

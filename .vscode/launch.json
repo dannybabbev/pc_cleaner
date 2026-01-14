@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "lldb",
+        "request": "launch",
+        "name": "Debug executable 'mac_cleaner'",
+        "cargo": {
+          "args": [
+            "build",
+            "--bin=mac_cleaner",
+            "--package=mac_cleaner"
+          ],
+          "filter": {
+            "name": "mac_cleaner",
+            "kind": "bin"
+          }
+        },
+        "args": [],  // Command line arguments go here
+        "cwd": "${workspaceFolder}"
+      },
+      {
+        "type": "lldb",
+        "request": "launch",
+        "name": "Debug unit tests",
+        "cargo": {
+          "args": [
+            "test",
+            "--no-run",
+            "--bin=mac_cleaner",
+            "--package=mac_cleaner"
+          ],
+          "filter": {
+            "name": "mac_cleaner",
+            "kind": "bin"
+          }
+        },
+        "args": [],
+        "cwd": "${workspaceFolder}"
+      }
+    ]
+  }
