@@ -73,3 +73,9 @@ pub fn prompt_selection<T: Clone>(prompt: &str, options: &[(T, &str)]) -> io::Re
 
     Ok(options[selection - 1].0.clone())
 }
+
+pub fn new_section() {
+    println!("");
+    println!("==========================================");
+    println!("");
+}

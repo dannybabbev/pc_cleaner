@@ -5,7 +5,7 @@ use dirs;
 mod prompts;
 use std::path::PathBuf;
 
-use crate::prompts::{prompt_selection, y_or_exit};
+use crate::prompts::{new_section, prompt_selection, y_or_exit};
 
 fn expand_tilde(path: &str) -> PathBuf {
     if path.starts_with("~/") {
@@ -35,7 +35,7 @@ fn main() {
     )
     .unwrap();
 
-    println!("==========================================");
+    new_section();
     println!("Scanning: {:?}", scan_path);
     println!("Dirs to match: ({:?}): ", matchers);
 
@@ -44,7 +44,7 @@ fn main() {
     let res = scanner::perform_scan(&scan_path, &matchers).unwrap();
     println!("{}", res);
 
-    println!("==========================================");
+    new_section();
 
     // Time filter options: 1 month, 3 months, 6 months
     let time_options: &[(i64, &str)] =
@@ -60,7 +60,7 @@ fn main() {
         .unwrap()
         .into();
 
-    println!("==========================================");
+    new_section();
     println!(
         "Filtering paths not accessed since {}...",
         cutoff.format("%Y-%m-%d")
@@ -68,4 +68,9 @@ fn main() {
 
     let filtered_res = res.filter_by_last_accessed(cutoff_system_time);
     println!("{}", filtered_res);
+
+    new_section();
+    y_or_exit("Delete directories? (y/N)", false).unwrap();
+
+    println!("Cleanup finished!");
 }
