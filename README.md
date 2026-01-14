@@ -3,6 +3,7 @@
 - Minimal and performant PC cleaner
 - Simple and auditable code
 - Safe: moves directories to trash
+- Minimal dependencies
 
 Don't trust it, verify it!
 
