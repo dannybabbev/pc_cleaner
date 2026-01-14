@@ -49,10 +49,10 @@ fn main() {
 
     // Time filter options: no filter, 1 month, 3 months, 6 months
     let time_options: &[(Option<i64>, &str)] = &[
-        (None, "No filter - all results"),
         (Some(1), "1 month ago"),
         (Some(3), "3 months ago"),
         (Some(6), "6 months ago"),
+        (None, "No filter - all results"),
     ];
 
     let months_back = prompt_selection("Filter by last visited", time_options).unwrap();
@@ -84,7 +84,8 @@ fn main() {
     new_section();
     y_or_exit("Delete directories? (y/N)", false).unwrap();
 
-    let deleted = cleaner::delete_directories(&filtered_res).unwrap();
+    let deleted = cleaner::run_cleaner(&filtered_res).unwrap();
     println!("Cleanup finished! Deleted {} directories.", deleted);
     println!("Saved {}", filtered_res.formatted_sum_byte_size());
+    println!("Empty your trash to appy the savings")
 }
