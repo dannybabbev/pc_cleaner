@@ -1,4 +1,5 @@
 use core::fmt;
+use std::fmt::write;
 use std::io;
 use std::fs::{self, read_dir};
 use std::path::{Path, PathBuf};
@@ -20,7 +21,23 @@ impl Display for MatchingPath {
         let format = "%Y-%m-%d";
         let m: DateTime<Local> = self.last_modified.into();
         let a: DateTime<Local> = self.last_accessed.into();
-        write!(f, "{:?} (last modified: {}; last visited: {}) {}", self.path, m.format(format), a.format(format), format_size(self.byte_size, DECIMAL))
+        write!(f, "{:?} (last modified: {}; last visited: {}) {}",
+            self.path, m.format(format), 
+            a.format(format), 
+            format_size(self.byte_size, DECIMAL))
+    }
+}
+
+pub struct ScanResult {
+    matched_paths: Vec<MatchingPath>,
+    sum_byte_size: u64,
+}
+
+impl Display for ScanResult {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} Paths; {} Total", 
+            self.matched_paths.len(), 
+            format_size(self.sum_byte_size, DECIMAL))
     }
 }
 
@@ -122,10 +139,24 @@ fn visit_dirs_recursive(dir: &Path, path_matcher: &str, matching_paths: &mut Vec
     Ok(())
 }
 
-pub fn visit_dirs(dir: &Path, path_matcher: &str) -> io::Result<Vec<MatchingPath>> {
+/// Visit all dirs under `dir` and match with `path_matcher`
+fn visit_dirs(dir: &Path, path_matcher: &str) -> io::Result<Vec<MatchingPath>> {
     let mut matching_paths: Vec<MatchingPath> = Vec::new();
 
     visit_dirs_recursive(dir, path_matcher, &mut matching_paths)?;
 
     Ok(matching_paths)
+}
+
+pub fn perform_scan(dir: &Path, path_matcher: &str) -> io::Result<ScanResult> {
+    let paths = visit_dirs(dir, path_matcher)?;
+
+    let total_size: u64 = paths.iter().map(|i| i.byte_size).sum();
+
+    let res = ScanResult {
+        matched_paths: paths,
+        sum_byte_size: total_size,
+    };
+
+    Ok(res)
 }

@@ -3,8 +3,9 @@ use std::path::Path;
 
 
 fn main() {
-    println!("Hello, world!");
+    println!("Welcome to Mac Cleaner!");
 
     let start_path = Path::new("/Users/daniel/dev");
-    let matched_paths = scanner::visit_dirs(start_path, "node_modules").unwrap();
+    let res = scanner::perform_scan(start_path, "node_modules").unwrap();
+    println!("{}", res);
 }
