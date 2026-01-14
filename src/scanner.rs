@@ -1,13 +1,11 @@
+use chrono::{DateTime, Local};
 use core::fmt;
-use std::fmt::write;
-use std::io;
+use fmt::Display;
+use humansize::{DECIMAL, format_size};
 use std::fs::{self, read_dir};
+use std::io;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
-use fmt::Display;
-use chrono::{DateTime, Local};
-use humansize::{format_size, DECIMAL};
-
 
 pub struct MatchingPath {
     path: PathBuf,
@@ -21,10 +19,14 @@ impl Display for MatchingPath {
         let format = "%Y-%m-%d";
         let m: DateTime<Local> = self.last_modified.into();
         let a: DateTime<Local> = self.last_accessed.into();
-        write!(f, "{:?} (last modified: {}; last visited: {}) {}",
-            self.path, m.format(format), 
-            a.format(format), 
-            format_size(self.byte_size, DECIMAL))
+        write!(
+            f,
+            "{:?} (last modified: {}; last visited: {}) {}",
+            self.path,
+            m.format(format),
+            a.format(format),
+            format_size(self.byte_size, DECIMAL)
+        )
     }
 }
 
@@ -35,9 +37,12 @@ pub struct ScanResult {
 
 impl Display for ScanResult {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} Paths; {} Total", 
-            self.matched_paths.len(), 
-            format_size(self.sum_byte_size, DECIMAL))
+        write!(
+            f,
+            "{} Paths; {} Total",
+            self.matched_paths.len(),
+            format_size(self.sum_byte_size, DECIMAL)
+        )
     }
 }
 
@@ -98,9 +103,12 @@ where
     Ok(size_in_bytes)
 }
 
-/// TODO: Match target/ as well
-/// walk directories until a match is found
-fn visit_dirs_recursive(dir: &Path, path_matcher: &str, matching_paths: &mut Vec<MatchingPath>) -> io::Result<()> {
+/// walk directories until a match is found, return from the branch
+fn visit_dirs_recursive(
+    dir: &Path,
+    path_matcher: &Vec<String>,
+    matching_paths: &mut Vec<MatchingPath>,
+) -> io::Result<()> {
     // Skip symlinks entirely
     let metadata = fs::symlink_metadata(dir)?;
     if metadata.file_type().is_symlink() {
@@ -108,7 +116,7 @@ fn visit_dirs_recursive(dir: &Path, path_matcher: &str, matching_paths: &mut Vec
     }
 
     if dir.is_dir() {
-        if dir.ends_with(path_matcher) {
+        if path_matcher.iter().any(|i| dir.ends_with(i)) {
             let meta = fs::metadata(dir)?;
             let modified = meta.modified()?;
             let accessed = meta.accessed()?;
@@ -140,7 +148,7 @@ fn visit_dirs_recursive(dir: &Path, path_matcher: &str, matching_paths: &mut Vec
 }
 
 /// Visit all dirs under `dir` and match with `path_matcher`
-fn visit_dirs(dir: &Path, path_matcher: &str) -> io::Result<Vec<MatchingPath>> {
+fn visit_dirs(dir: &Path, path_matcher: &Vec<String>) -> io::Result<Vec<MatchingPath>> {
     let mut matching_paths: Vec<MatchingPath> = Vec::new();
 
     visit_dirs_recursive(dir, path_matcher, &mut matching_paths)?;
@@ -148,7 +156,8 @@ fn visit_dirs(dir: &Path, path_matcher: &str) -> io::Result<Vec<MatchingPath>> {
     Ok(matching_paths)
 }
 
-pub fn perform_scan(dir: &Path, path_matcher: &str) -> io::Result<ScanResult> {
+/// Call this function to scan your system
+pub fn perform_scan(dir: &Path, path_matcher: &Vec<String>) -> io::Result<ScanResult> {
     let paths = visit_dirs(dir, path_matcher)?;
 
     let total_size: u64 = paths.iter().map(|i| i.byte_size).sum();
