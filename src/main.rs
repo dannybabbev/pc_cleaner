@@ -6,7 +6,7 @@ use dirs;
 mod prompts;
 use std::path::PathBuf;
 
-use crate::prompts::{new_section, prompt_selection, y_or_exit};
+use crate::prompts::{exit_with_message, new_section, prompt_selection, y_or_exit};
 
 fn expand_tilde(path: &str) -> PathBuf {
     if path.starts_with("~/") {
@@ -46,6 +46,10 @@ fn main() {
     println!("{}", res);
 
     new_section();
+
+    if res.matched_paths.len() == 0 {
+        exit_with_message("Nothing to delete... Exiting");
+    }
 
     // Time filter options: no filter, 1 month, 3 months, 6 months
     let time_options: &[(Option<i64>, &str)] = &[

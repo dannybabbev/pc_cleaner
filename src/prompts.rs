@@ -79,3 +79,8 @@ pub fn new_section() {
     println!("==========================================");
     println!("");
 }
+
+pub fn exit_with_message(message: &str) {
+    println!("{}", message);
+    process::exit(0);
+}
